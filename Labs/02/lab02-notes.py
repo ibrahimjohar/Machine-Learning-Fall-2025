@@ -290,6 +290,57 @@ df['Education_Encoded'] = le.fit_transform(df['Education'])
 
 df_onehot = pd.get_dummies(df, columns=['City'], drop_first=True)
 
+"""    
+    Name       City
+0    Ali     Lahore
+1   Sara    Karachi
+2  Ahmed  Islamabad
+3   Zain     Lahore
+
+- Case 1: drop_first=False (default)
+
+pd.get_dummies(df, columns=["City"], drop_first=False)
+
+- Output:
+
+    Name   City_Islamabad  City_Karachi  City_Lahore
+0    Ali        0              0            1
+1   Sara        0              1            0
+2  Ahmed        1              0            0
+3   Zain        0              0            1
+
+- Here, 3 dummy columns are created (one for each city).
+    - This is fine for tree models.
+    - But for linear/logistic regression, these 3 columns are redundant (perfect multicollinearity).
+
+- Case 2: drop_first=True
+
+pd.get_dummies(df, columns=["City"], drop_first=True)
+
+- Output:
+
+    Name   City_Islamabad  City_Karachi
+0    Ali        0              0            # Lahore (dropped category)
+1   Sara        0              1            # Karachi
+2  Ahmed        1              0            # Islamabad
+3   Zain        0              0            # Lahore
+
+- Now, only 2 dummy columns are created.
+    - If both are 0 → Lahore (the dropped base category).
+    - If City_Karachi=1 → Karachi.
+    - If City_Islamabad=1 → Islamabad.
+    
+    -> This avoids redundancy in regression models.
+
+-> drop_first=False: Creates dummy columns for all categories (good for trees).
+-> drop_first=True: Drops one category column to avoid dummy variable trap (good for regression).
+
+-> LabelEncoder: assigns IDs automatically (alphabetical order).
+-> One-Hot Encoding: creates binary columns (good for nominal categories).
+-> Ordinal Encoding (custom mapping): lets you define the order explicitly (good for ordered categories).
+
+"""
+
 # Ordinal Encoding (custom mapping)
 education_map = {'Bachelors': 1, 'Masters': 2, 'PhD': 3}
 df['Education_Ordinal'] = df['Education'].map(education_map)
@@ -377,5 +428,6 @@ This balances the dataset but at the cost of losing information from the majorit
 in conclusion:
 -> Oversampling = add more minority samples (risk: overfitting).
 -> Undersampling = remove majority samples (risk: losing data).
+
 
 """
